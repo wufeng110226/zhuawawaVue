@@ -1,0 +1,329 @@
+<template>
+	<div id="requestFriends" :style="height">
+		<navbar :title="name"></navbar>
+		<div id="requestFriends_shild">
+			<div class="title_img"><img src="../assets/rf.png" /></div>
+			<div class="content">
+				<div class="rule">
+					<p class="lit_title">邀请规则：</p>
+					<p>好友通过你的邀请下载登录游戏，你即可得到奖励</p>
+					<p class="lit_title">基本奖励：</p>
+					<p>每邀请一名好友，你和好友双方各获得58金币</p>
+					<p class="lit_title">额外奖励：</p>
+					<p>每邀请5位好友，再送50金币！邀请达20人奖励封顶</p>
+				</div>
+				<p class="share_title">赶紧行动起来吧~分享到</p>
+				<div id="share" v-if="isWxB">
+					<li class="shareCustom_style" @click="shareWx">
+		  				<p class="bgweixin">
+		  					<img src="../assets/wxicon.png" />
+		  				</p>
+		  			</li>
+		  			<li class="shareCustom_style" @click="shareWx">
+		  				<p class="bgweixintimeline">
+		  					<img src="../assets/wxtimelineicon.png" />
+		  				</p>
+		  			</li>
+		  			<li class="shareCustom_style" @click="shareWx">
+		  				<p class="bgqq">
+		  					<img src="../assets/qqicon.png" />
+		  				</p>
+		  			</li>
+		  			<li class="shareCustom_style" @click="shareWx">
+		  				<p class="bgqzone">
+		  					<img src="../assets/qzone.png" />
+		  				</p>
+		  			</li>
+				</div>
+				<div id="share" v-else>
+					<li class="shareCustom_style" @click="shareWx">
+		  				<p class="bgweixin">
+		  					<img src="../assets/wxicon.png" />
+		  				</p>
+		  			</li>
+		  			<li class="shareCustom_style" @click="shareWx">
+		  				<p class="bgweixintimeline">
+		  					<img src="../assets/wxtimelineicon.png" />
+		  				</p>
+		  			</li>
+				</div>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+import navbar from '@/components/public/navbar'
+import { Toast } from 'vant';
+import { httpUrl } from '@/api'
+import soshm from 'soshm';
+export default {
+	components:{
+		navbar
+	},
+	data() {
+		return {
+			name:'邀请好友',
+			userId:'',
+			height: {
+	  			'min-height':window.screen.height + 'px'
+	  		},
+	  		isWxB:false,
+	  		shareImg:'',
+	  		updateTime:0
+		}
+	},
+	created(){
+		if(this.isWxBroser){
+			Toast.loading({
+				type:'html',
+				message:"<div style='text-align:center;'><img style='width:50%;' src='"+require('@/assets/loading.gif')+"' /></div>",
+				mask: true,
+				duration: 0
+			});
+		}
+	},
+	methods: {
+		getshareIMG(){
+			let form = {
+				uid:this.userId
+			}
+			this.$http.post(httpUrl.getshareimg,form)
+				.then(
+					response => {
+						if(response.body.state == '1'){
+							this.shareImg = response.body.data.image;
+							this.share();
+						}
+					},
+					response => {
+						Toast({
+    						message:'链接服务器失败，请稍后再试！',
+    						position:'bottom'
+	    				});
+					}
+				)
+		},
+		shareWx(){
+			if(!this.isWxBroser){
+				Toast('请在微信浏览器中打开！');
+			}else{
+				Toast('请点击右上角按钮进行分享！');
+			}
+		},
+		share(){
+			let _this = this;
+			if(this.isWxBroser){
+				soshm('#share',{
+					url:_this.shareImg,
+					title: '送你一个娃娃',
+					digest:'帮我登录游戏，帮你赚金币',
+					sites:['douban', 'weibo']
+				});
+			}else{
+				soshm('#share',{
+					url:_this.shareImg,
+					title: '送你一个娃娃',
+					digest:'帮我登录游戏，帮你赚金币',
+					sites:['douban', 'weibo', 'qq', 'qzone']
+				});
+			}
+		},
+		wxConfig(){
+			
+			let _this = this;
+			wx.onMenuShareAppMessage({
+				title: '送你一个娃娃', // 分享标题
+				desc: '帮我登录游戏，帮你赚金币', // 分享描述
+				link: 'http://lezhuawawaji.com/shareimg' + '?uid=' + _this.userId + '', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+				imgUrl: 'http://wawa.lyuecity.com/images/2018-02-08/5a7bbeae281b3.png', // 分享图标
+				type: '', // 分享类型,music、video或link，不填默认为link
+				dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+				success: function () {
+					// 用户确认分享后执行的回调函数
+					Toast("分享给个人成功了");
+				},
+				cancel: function () {
+					// 用户取消分享后执行的回调函数
+					Toast("取消分享给微信好友！");
+				}
+			});
+			wx.onMenuShareTimeline({
+			    title: '送你一个娃娃', // 分享标题
+			    link: 'http://lezhuawawaji.com/shareimg' + '?uid=' + _this.userId + '', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+			    imgUrl: 'http://wawa.lyuecity.com/images/2018-02-08/5a7bbeae281b3.png', // 分享图标
+			    success: function () {
+			    	// 用户确认分享后执行的回调函数
+			    	Toast("分享到朋友圈成功了!");
+				},
+				cancel: function () {
+			    	// 用户取消分享后执行的回调函数
+			    	Toast("取消分享到朋友圈!");
+			    }
+			});
+			wx.onMenuShareQQ({
+				title: '送你一个娃娃', // 分享标题
+				desc: '帮我登录游戏，帮你赚金币', // 分享描述
+				link: 'http://lezhuawawaji.com/shareimg' + '?uid=' + _this.userId + '', // 分享链接
+				imgUrl: 'http://wawa.lyuecity.com/images/2018-02-08/5a7bbeae281b3.png', // 分享图标
+				success: function () {
+					// 用户确认分享后执行的回调函数
+					Toast("分享给qq朋友成功！");
+				},
+				cancel: function () {
+					// 用户取消分享后执行的回调函数
+					Toast("取消分享给朋友！");
+				}
+			});
+			wx.onMenuShareQZone({
+				title: '送你一个娃娃', // 分享标题
+				desc: '帮我登录游戏，帮你赚金币', // 分享描述
+				link: 'http://lezhuawawaji.com/shareimg' + '?uid=' + _this.userId + '', // 分享链接
+				imgUrl: 'http://wawa.lyuecity.com/images/2018-02-08/5a7bbeae281b3.png', // 分享图标
+				success: function () {
+					// 用户确认分享后执行的回调函数
+					Toast("分享到qq空间成功！");
+				},
+				cancel: function () {
+					// 用户取消分享后执行的回调函数
+					Toast("取消分享到qq空间！");
+				}
+			});
+			Toast.clear();
+		}
+	},
+	mounted(){
+		let getUserCookie = this.getCookie('userInfos');
+		this.isWxB = this.isWxBroser;
+		if(getUserCookie){
+			let userInfos = decodeURIComponent(getUserCookie);
+  			userInfos = JSON.parse(userInfos);
+			this.userId = userInfos.uid;
+			this.getshareIMG();
+			if(this.isWxBroser){
+				let form = {
+					url:location.href.split("#")[0]
+				}
+				this.$http.post(httpUrl.getSign,form)
+					.then(
+						response => {
+							if(response.body.state == '1'){
+								let _this = this;
+								wx.config({
+									debug:false,
+									appId:'wx82a1dd5514e979f3',
+									timestamp:response.body.data.timestamp,
+									nonceStr:response.body.data.noncestr,
+									signature:response.body.data.sign,
+									jsApiList:['onMenuShareTimeline', 'onMenuShareAppMessage', 'onMenuShareQQ', 'onMenuShareQZone']
+								})
+								wx.ready(function(){
+									_this.wxConfig();
+									// config信息验证后会执行ready方法，所有接口调用都必须在config接口获得结果之后，config是一个客户端的异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中。
+								});
+								
+								wx.error(function(res){
+									location.reload();
+								    // config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
+								});
+								
+							}
+						},
+						response => {
+							Toast.clear();
+							Toast({
+								message:'服务器响应失败，请重新尝试！',
+								position:'bottom'
+							});
+						}
+					)
+			}
+		}
+	}
+}
+</script>
+
+<style lang="scss">
+@import '../style/publicColor.scss';
+	#requestFriends {
+		background: #ffd496;
+	    padding-bottom: 30px;
+		#requestFriends_shild {
+			padding:0 15px;
+			.title_img {
+				text-align: center;
+				img {
+					width:60%;
+					position: relative;
+					top:25px;
+				}
+			}
+			.content {
+				background: $white;
+				border-radius:10px;
+				padding:25px 15px 0 15px;
+				box-shadow:3px 5px 5px -2px rgba(126,74,0,0.3);
+				.rule {
+					border-bottom:1px solid #e8e8e8;
+					padding-bottom:10px;
+					margin-bottom:10px;
+					p {
+						margin:10px 0;
+					}
+					.lit_title {
+						color: #b38326;
+					}
+				}
+				.share_title {
+					text-align: center;
+					margin:0 10px;
+					font-size: 12px;
+					color: #8b8b8b;
+				}
+				#share {
+   					display: flex;
+    				justify-content: center;
+    				padding:3px 0;
+    				.shareCustom_style {
+    					float: left;
+					    margin: 5px;
+					    cursor: pointer;
+    				}
+   					li {
+   						list-style-type: none;
+   						p {
+   							margin: 0;
+   							border-radius: 50%;
+   							width: 26px;
+   							height:26px;
+   							padding: 5px;
+						    vertical-align: middle;
+   							img {
+   								width:100%;
+   								height:100%;
+   							}
+   						}
+   						p.bgweixin {
+   							background-color: #42b236;
+   						}
+   						p.bgweixintimeline {
+   							background-color: #42b236;
+   						}
+   						p.bgdouban {
+   							background-color: #2e9e39;
+   						}
+   						p.bgweibo {
+   							background-color: #f04e59
+   						}
+   						p.bgqq {
+   							background-color: #4aafed
+   						}
+   						p.bgqzone {
+   							background-color: #fdbe3d
+   						}
+   					}
+				}
+			}
+		}
+	}
+</style>

@@ -1,12 +1,10 @@
-# 20180119 去掉融云即时通信改用js原生websocket
-
+# 20180119
 
 > 物联网娃娃机移动端项目
 > 项目地址 lezhuawawaji.com
 > 主要用 vue + vant + axios + websocket
 > 用websocket和服务器通信拉取视频流，娃娃机房间实时通信，反馈抓取记录，使用第三方SDK操作娃娃机的爪子移动下抓。
 > 代码涉及隐私已经删除部分权限ID
-#var www root
 
 ## Build Setup
 
